@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request
-from datetime import date
 import numpy as np
-import sys
+from datetime import date
 
 app = Flask(__name__)
 
@@ -13,22 +12,15 @@ config = {
 }
 
 def run_simulation(config):
-    sys.stdout.write('\rStarting..\n')
     total_runs = config['simulation_runs']
     all_numbers = np.arange(config['first_number'], config['last_number'] + 1)
-    
-    sys.stdout.write('\rGenerating Results..\n')
     results = np.random.choice(all_numbers, size=(total_runs, config['numbers_to_select'])).flatten()
-    
-    sys.stdout.write('\rResults generated.\n')  
-
     return results
 
 def analyze_results(results, config):
     total_runs = config['simulation_runs']
     unique, counts = np.unique(results, return_counts=True)
     frequencies = counts / (total_runs * config['numbers_to_select']) * 100
-    sys.stdout.write('\rAnalyzing results..\n')
     
     analysis = {
         'frequency': dict(zip(unique, frequencies)),
@@ -37,6 +29,37 @@ def analyze_results(results, config):
     }
 
     return analysis
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    default_first_number = config['first_number']
+    default_last_number = config['last_number']
+    default_numbers_to_select = config['numbers_to_select']
+    default_simulation_runs = config['simulation_runs']
+    
+    if request.method == 'POST':
+        user_input = {}
+        
+        user_input['first_number'] = int(request.form.get('first_number', default_first_number))
+        user_input['last_number'] = int(request.form.get('last_number', default_last_number))
+        user_input['numbers_to_select'] = int(request.form.get('numbers_to_select', default_numbers_to_select))
+        user_input['simulation_runs'] = int(request.form.get('simulation_runs', default_simulation_runs))
+        
+        results = run_simulation(user_input)
+        analysis = analyze_results(results, user_input)
+        # save_to_file(analysis, user_input)
+        
+        return render_template('index.html', analysis=analysis, 
+                               default_first_number=user_input['first_number'], 
+                               default_last_number=user_input['last_number'], 
+                               default_numbers_to_select=user_input['numbers_to_select'], 
+                               default_simulation_runs=user_input['simulation_runs'])
+    
+    return render_template('index.html', 
+                           default_first_number=default_first_number, 
+                           default_last_number=default_last_number, 
+                           default_numbers_to_select=default_numbers_to_select, 
+                           default_simulation_runs=default_simulation_runs)
 
 def save_to_file(analysis, config):
     today = date.today().strftime("%Y-%m-%d")
@@ -61,28 +84,6 @@ def save_to_file(analysis, config):
                 file.write(f"{number}\n")
         else:
             file.write("All numbers rolled at least once.\n")
-
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    default_first_number = config['first_number']
-    default_last_number = config['last_number']
-    default_numbers_to_select = config['numbers_to_select']
-    default_simulation_runs = config['simulation_runs']
-    
-    if request.method == 'POST':
-        results = run_simulation(config)
-        analysis = analyze_results(results, config)
-        # save_to_file(analysis, config)
-        return render_template('index.html', analysis=analysis, 
-                               default_first_number=default_first_number, 
-                               default_last_number=default_last_number, 
-                               default_numbers_to_select=default_numbers_to_select, 
-                               default_simulation_runs=default_simulation_runs)
-    return render_template('index.html', 
-                           default_first_number=default_first_number, 
-                           default_last_number=default_last_number, 
-                           default_numbers_to_select=default_numbers_to_select, 
-                           default_simulation_runs=default_simulation_runs)
 
 if __name__ == '__main__':
     app.run(debug=True)
