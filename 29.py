@@ -29,7 +29,7 @@ def analyze_results(results, config):
     
     analysis = {
         'frequency': dict(zip(unique, frequencies)),
-        'top_3': unique[np.argsort(-counts)[:3]],
+        'top': unique[np.argsort(-counts)[:config['numbers_to_select']]],
         'missing_numbers': [number for number in range(config['first_number'], config['last_number'] + 1) if number not in unique]
     }
 
@@ -47,9 +47,9 @@ def save_to_file(analysis, config):
         for number, percentage in analysis['frequency'].items():
             file.write(f"Number {number}: {percentage:.8f}%\n")
         
-        file.write("\nTop 3 most frequently rolled numbers:\n")
-        file.write(f"Numbers: {analysis['top_3'].tolist()}\n")
-        for number in analysis['top_3']:
+        file.write("\nTop most frequently rolled numbers:\n")
+        file.write(f"Copy: {analysis['top'].tolist()}\n")
+        for number in analysis['top']:
             file.write(f"Number {number}: {analysis['frequency'][number]:.8f}%\n")
         
         file.write("\nNumbers that did not roll:\n")
@@ -61,9 +61,9 @@ def save_to_file(analysis, config):
 
 def display_results(analysis):
     today = date.today().strftime("%Y-%m-%d")
-    print("\nTop 3 most frequently rolled numbers:")
+    print(f"\nCopy {analysis['top'].tolist()} most frequently rolled numbers:")
     
-    for number in analysis['top_3']:
+    for number in analysis['top']:
         print(f"Number {number}: {analysis['frequency'][number]:.8f}%")
 
     if analysis['missing_numbers']:
