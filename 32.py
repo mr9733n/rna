@@ -72,7 +72,7 @@ def index():
     if request.method == 'POST':
         results = run_simulation(config)
         analysis = analyze_results(results, config)
-        save_to_file(analysis, config)
+        # save_to_file(analysis, config)
         return render_template('index.html', analysis=analysis, 
                                default_first_number=default_first_number, 
                                default_last_number=default_last_number, 
