@@ -20,7 +20,7 @@ def run_simulation(config):
 def analyze_results(results, config):
     total_runs = config['simulation_runs']
     unique, counts = np.unique(results, return_counts=True)
-    frequencies = counts / (total_runs * config['numbers_to_select']) * 100
+    frequencies = round(counts / (total_runs * config['numbers_to_select']) * 100, 8)
     
     analysis = {
         'frequency': dict(zip(unique, frequencies)),
